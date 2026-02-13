@@ -1,5 +1,5 @@
 # --- Deep Learning & Numerische Berechnungen ---
-tensorflow==2.12.0      # Haupt-Framework für das Training und Deployment von Deep-Learning-Modellen
+tensorflow==2.18.1      # Haupt-Framework für das Training und Deployment von Deep-Learning-Modellen
 numpy                   # Grundlegende Bibliothek für Berechnungen mit multidimensionalen Arrays
 scipy                   # Ergänzende Funktionen für wissenschaftliche Berechnungen (z.B. Optimierung)
 
@@ -8,7 +8,7 @@ pandas                  # Manipulation und Analyse von Daten in Tabellenform (Da
 
 # --- MLOps & Projektmanagement ---
 dvc                     # Data Version Control: Versionierung von Datensätzen und Modellen (wie Git für Daten)
-mlflow==2.2.2           # Tracking von Experimenten (Metriken, Parameter) und Modell-Lebenszyklus
+mlflow==3.5.0           # Tracking von Experimenten (Metriken, Parameter) und Modell-Lebenszyklus
 joblib                  # Effizientes Speichern und Laden von Python-Objekten (z.B. Scikit-learn Modelle)
 
 # --- Visualisierung ---
