@@ -2,6 +2,20 @@
 
 Dieses Projekt nutzt Deep Learning zur Klassifizierung von Nierenerkrankungen basierend auf Bilddaten.
 
+## Worflows
+
+1. Update config.yml
+2. Update secrets.yml [Optional]
+3. Update params.yml
+4. Update entity 
+5. Update the configuration manager in src config
+6. Update the components
+7. Update the pipeline
+8. Update the main.py
+9. Update the dvc.yml
+10. app.py
+
+
 ## 🚀 How to run?
 
 ### Voraussetzungen
