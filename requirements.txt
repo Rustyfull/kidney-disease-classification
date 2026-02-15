@@ -28,5 +28,6 @@ Flask                   # Micro-Web-Framework, um dein Modell als Web-API bereit
 Flask-Cors              # Ermöglicht Cross-Origin Resource Sharing (CORS) für den Zugriff auf die API
 gdown                   # Tool zum einfachen Herunterladen von großen Dateien aus Google Drive
 
+numpy==1.26.4
 # --- Lokale Installation ---
 -e .                    # Installiert dein eigenes Projekt im "Editable Mode" (basiert auf setup.py)
