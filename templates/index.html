@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CNN Classifier · Vision Engine</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+
+  <style>
+    /* ── Tokens ──────────────────────────────────────────────────────── */
+    :root {
+      --bg:        #0a0a0f;
+      --surface:   #111118;
+      --border:    rgba(255,255,255,0.07);
+      --accent:    #00f5c4;
+      --accent2:   #7b5cff;
+      --danger:    #ff4f6a;
+      --text:      #e8e8f0;
+      --muted:     #6b6b80;
+      --radius:    14px;
+      --mono:      'DM Mono', monospace;
+      --display:   'Syne', sans-serif;
+      --body:      'DM Sans', sans-serif;
+    }
+
+    /* ── Reset ───────────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--body);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── Grain overlay ───────────────────────────────────────────────── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none; z-index: 999;
+      opacity: 0.35;
+    }
+
+    /* ── Grid background ─────────────────────────────────────────────── */
+    .grid-bg {
+      position: fixed; inset: 0; z-index: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+      background-size: 60px 60px;
+      mask-image: radial-gradient(ellipse 80% 80% at 50% 0%, black 0%, transparent 70%);
+    }
+
+    /* ── Glow orbs ───────────────────────────────────────────────────── */
+    .orb {
+      position: fixed; border-radius: 50%;
+      filter: blur(80px); pointer-events: none; z-index: 0;
+    }
+    .orb-1 {
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, rgba(0,245,196,0.12), transparent 70%);
+      top: -150px; right: -100px;
+      animation: float1 8s ease-in-out infinite;
+    }
+    .orb-2 {
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(123,92,255,0.12), transparent 70%);
+      bottom: -100px; left: -80px;
+      animation: float2 10s ease-in-out infinite;
+    }
+
+    @keyframes float1 {
+      0%, 100% { transform: translate(0, 0); }
+      50%       { transform: translate(-30px, 30px); }
+    }
+    @keyframes float2 {
+      0%, 100% { transform: translate(0, 0); }
+      50%       { transform: translate(30px, -20px); }
+    }
+
+    /* ── Layout ──────────────────────────────────────────────────────── */
+    .wrapper {
+      position: relative; z-index: 1;
+      max-width: 960px; margin: 0 auto;
+      padding: 0 24px 80px;
+    }
+
+    /* ── Header ──────────────────────────────────────────────────────── */
+    header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 32px 0 48px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 56px;
+      animation: fadeDown 0.6s ease both;
+    }
+
+    .logo {
+      display: flex; align-items: center; gap: 12px;
+    }
+
+    .logo-icon {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 8px;
+      display: grid; place-items: center;
+    }
+
+    .logo-icon svg { width: 20px; height: 20px; fill: none; stroke: #fff; stroke-width: 2; }
+
+    .logo-text {
+      font-family: var(--display);
+      font-size: 1.1rem;
+      letter-spacing: 0.02em;
+    }
+
+    .logo-text span { color: var(--accent); }
+
+    .version-badge {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      padding: 4px 10px;
+      border-radius: 100px;
+      letter-spacing: 0.08em;
+    }
+
+    /* ── Hero title ──────────────────────────────────────────────────── */
+    .hero {
+      margin-bottom: 56px;
+      animation: fadeDown 0.6s ease 0.1s both;
+    }
+
+    .hero-label {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      color: var(--accent);
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+      display: flex; align-items: center; gap: 8px;
+    }
+
+    .hero-label::before {
+      content: '';
+      display: block; width: 24px; height: 1px;
+      background: var(--accent);
+    }
+
+    h1 {
+      font-family: var(--display);
+      font-size: clamp(2.4rem, 5vw, 3.6rem);
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+    }
+
+    h1 em {
+      font-style: normal;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-desc {
+      margin-top: 20px;
+      color: var(--muted);
+      font-size: 1.05rem;
+      font-weight: 300;
+      max-width: 520px;
+      line-height: 1.7;
+    }
+
+    /* ── Cards grid ──────────────────────────────────────────────────── */
+    .cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      animation: fadeUp 0.6s ease 0.2s both;
+    }
+
+    @media (max-width: 680px) {
+      .cards { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 32px;
+      transition: border-color 0.25s, transform 0.25s;
+    }
+
+    .card:hover {
+      border-color: rgba(255,255,255,0.14);
+      transform: translateY(-2px);
+    }
+
+    .card.full { grid-column: 1 / -1; }
+
+    .card-label {
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 20px;
+      display: flex; align-items: center; gap: 8px;
+    }
+
+    .card-label .dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--accent);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    .card-label .dot.purple { background: var(--accent2); }
+    .card-label .dot.red    { background: var(--danger);  animation: none; }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%       { opacity: 0.5; transform: scale(0.8); }
+    }
+
+    .card h2 {
+      font-family: var(--display);
+      font-size: 1.25rem;
+      margin-bottom: 12px;
+      letter-spacing: -0.01em;
+    }
+
+    .card p {
+      font-size: 0.88rem;
+      color: var(--muted);
+      line-height: 1.6;
+      margin-bottom: 24px;
+    }
+
+    /* ── Upload zone ─────────────────────────────────────────────────── */
+    .drop-zone {
+      border: 1.5px dashed rgba(255,255,255,0.12);
+      border-radius: 10px;
+      padding: 36px 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.25s, background 0.25s;
+      position: relative;
+      background: rgba(255,255,255,0.02);
+    }
+
+    .drop-zone:hover, .drop-zone.drag-over {
+      border-color: var(--accent);
+      background: rgba(0,245,196,0.04);
+    }
+
+    .drop-zone input[type="file"] {
+      position: absolute; inset: 0;
+      opacity: 0; cursor: pointer; width: 100%; height: 100%;
+    }
+
+    .drop-icon {
+      width: 44px; height: 44px; margin: 0 auto 12px;
+      border-radius: 10px;
+      background: rgba(0,245,196,0.1);
+      display: grid; place-items: center;
+    }
+
+    .drop-icon svg { width: 22px; height: 22px; stroke: var(--accent); fill: none; stroke-width: 1.8; }
+
+    .drop-label {
+      font-size: 0.88rem;
+      color: var(--muted);
+    }
+
+    .drop-label strong { color: var(--accent); font-weight: 500; }
+
+    /* ── Preview ─────────────────────────────────────────────────────── */
+    #imagePreview {
+      display: none;
+      margin-top: 16px;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      position: relative;
+    }
+
+    #imagePreview img {
+      width: 100%;
+      max-height: 300px;
+      object-fit: cover;
+      display: block;
+    }
+
+    #imagePreview .remove-btn {
+      position: absolute; top: 10px; right: 10px;
+      background: rgba(0,0,0,0.7);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-size: 0.75rem;
+      padding: 4px 10px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    #imagePreview .remove-btn:hover { background: rgba(255,79,106,0.3); }
+
+    /* ── Buttons ─────────────────────────────────────────────────────── */
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-family: var(--body);
+      font-size: 0.9rem;
+      font-weight: 500;
+      padding: 12px 24px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.2s;
+    }
+
+    .btn:hover  { opacity: 0.85; transform: translateY(-1px); }
+    .btn:active { transform: translateY(0); }
+
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), #00c49a);
+      color: #0a0a0f;
+      width: 100%; justify-content: center;
+    }
+
+    .btn-secondary {
+      background: rgba(123,92,255,0.15);
+      color: var(--accent2);
+      border: 1px solid rgba(123,92,255,0.3);
+      width: 100%; justify-content: center;
+    }
+
+    .btn svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; }
+
+    /* ── Spinner ─────────────────────────────────────────────────────── */
+    .spinner {
+      width: 16px; height: 16px;
+      border: 2px solid rgba(10,10,15,0.3);
+      border-top-color: #0a0a0f;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: none;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Result box ──────────────────────────────────────────────────── */
+    #result {
+      display: none;
+      margin-top: 20px;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .result-inner {
+      padding: 20px 24px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: rgba(0,245,196,0.04);
+    }
+
+    .result-inner.error {
+      background: rgba(255,79,106,0.04);
+      border-color: rgba(255,79,106,0.2);
+    }
+
+    .result-label {
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .result-value {
+      font-family: var(--display);
+      font-size: 1.5rem;
+      color: var(--accent);
+    }
+
+    .result-inner.error .result-value { color: var(--danger); font-size: 1rem; font-family: var(--body); }
+
+    /* ── Train section ───────────────────────────────────────────────── */
+    .train-status {
+      display: none;
+      margin-top: 16px;
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      padding: 14px 18px;
+      border-radius: 8px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .train-status.success { color: var(--accent);  border-color: rgba(0,245,196,0.2); background: rgba(0,245,196,0.04); }
+    .train-status.error   { color: var(--danger);  border-color: rgba(255,79,106,0.2); background: rgba(255,79,106,0.04); }
+
+    /* ── Info strip ──────────────────────────────────────────────────── */
+    .info-strip {
+      display: flex; gap: 16px; flex-wrap: wrap;
+      margin-top: 20px; padding-top: 20px;
+      border-top: 1px solid var(--border);
+    }
+
+    .info-item {
+      flex: 1; min-width: 120px;
+    }
+
+    .info-item .lbl {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .info-item .val {
+      font-family: var(--mono);
+      font-size: 0.85rem;
+      color: var(--text);
+    }
+
+    /* ── Footer ──────────────────────────────────────────────────────── */
+    footer {
+      margin-top: 72px;
+      padding-top: 28px;
+      border-top: 1px solid var(--border);
+      display: flex; justify-content: space-between; align-items: center;
+      animation: fadeUp 0.6s ease 0.35s both;
+    }
+
+    footer p {
+      font-size: 0.8rem;
+      color: var(--muted);
+      font-family: var(--mono);
+    }
+
+    footer a { color: var(--accent); text-decoration: none; }
+
+    /* ── Animations ──────────────────────────────────────────────────── */
+    @keyframes fadeDown {
+      from { opacity: 0; transform: translateY(-16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="grid-bg"></div>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+
+  <div class="wrapper">
+
+    <!-- ── Header ──────────────────────────────────────────────────────── -->
+    <header>
+      <div class="logo">
+        <div class="logo-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        </div>
+        <span class="logo-text">Vision<span>Engine</span></span>
+      </div>
+      <span class="version-badge">v1.0 · CNN</span>
+    </header>
+
+    <!-- ── Hero ────────────────────────────────────────────────────────── -->
+    <section class="hero">
+      <div class="hero-label">Image Classification System</div>
+      <h1>Classify images with<br/><em>neural precision.</em></h1>
+      <p class="hero-desc">
+        Upload any image and let the convolutional neural network identify and categorise
+        its content in milliseconds. Retrain the model pipeline directly from this interface.
+      </p>
+    </section>
+
+    <!-- ── Cards ───────────────────────────────────────────────────────── -->
+    <div class="cards">
+
+      <!-- PREDICT CARD -->
+      <div class="card full">
+        <div class="card-label"><span class="dot"></span> Predict</div>
+        <h2>Run Inference</h2>
+        <p>Upload a JPEG or PNG image to get a classification result from the trained CNN model.</p>
+
+        <!-- Drop zone -->
+        <div class="drop-zone" id="dropZone">
+          <input type="file" id="fileInput" accept="image/jpeg,image/png" />
+          <div class="drop-icon">
+            <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+          </div>
+          <div class="drop-label">
+            <strong>Click to upload</strong> or drag &amp; drop<br/>
+            <small style="font-size:0.78rem">JPEG, PNG · max 10 MB</small>
+          </div>
+        </div>
+
+        <!-- Preview -->
+        <div id="imagePreview">
+          <img id="previewImg" src="" alt="Preview"/>
+          <button class="remove-btn" id="removeBtn">✕ Remove</button>
+        </div>
+
+        <!-- Predict button -->
+        <button class="btn btn-primary" id="predictBtn" style="margin-top:20px" disabled>
+          <div class="spinner" id="predictSpinner"></div>
+          <svg id="predictIcon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+          <span id="predictText">Analyse Image</span>
+        </button>
+
+        <!-- Result -->
+        <div id="result">
+          <div class="result-inner" id="resultInner">
+            <div class="result-label">Classification Result</div>
+            <div class="result-value" id="resultValue"></div>
+          </div>
+        </div>
+
+        <div class="info-strip">
+          <div class="info-item">
+            <div class="lbl">Endpoint</div>
+            <div class="val">POST /predict</div>
+          </div>
+          <div class="info-item">
+            <div class="lbl">Format</div>
+            <div class="val">base64 JSON</div>
+          </div>
+          <div class="info-item">
+            <div class="lbl">Status</div>
+            <div class="val" id="modelStatus">● Ready</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TRAIN CARD -->
+      <div class="card full">
+        <div class="card-label"><span class="dot purple"></span> Pipeline</div>
+        <h2>Retrain Model</h2>
+        <p>Trigger the full DVC training pipeline. This will reproduce all stages from data ingestion to model evaluation. Training may take several minutes.</p>
+
+        <button class="btn btn-secondary" id="trainBtn">
+          <div class="spinner" id="trainSpinner" style="border-color:rgba(123,92,255,0.3);border-top-color:var(--accent2)"></div>
+          <svg id="trainIcon" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+          <span id="trainText">Start Training</span>
+        </button>
+
+        <div class="train-status" id="trainStatus"></div>
+      </div>
+
+    </div><!-- /cards -->
+
+    <!-- ── Footer ──────────────────────────────────────────────────────── -->
+    <footer>
+      <p>CNN Classifier · Flask + DVC</p>
+      <p>Endpoint: <a href="/predict" target="_blank">/predict</a></p>
+    </footer>
+
+  </div><!-- /wrapper -->
+
+  <script>
+    /* ── Helpers ──────────────────────────────────────────────────────── */
+    const $ = id => document.getElementById(id);
+
+    function setLoading(spinId, iconId, textId, textVal, loading) {
+      $(spinId).style.display = loading ? 'block' : 'none';
+      $(iconId).style.display = loading ? 'none' : 'block';
+      $(textId).textContent   = loading ? 'Processing…' : textVal;
+    }
+
+    /* ── File / drag handling ─────────────────────────────────────────── */
+    const dropZone   = $('dropZone');
+    const fileInput  = $('fileInput');
+    const preview    = $('imagePreview');
+    const previewImg = $('previewImg');
+    const removeBtn  = $('removeBtn');
+    const predictBtn = $('predictBtn');
+
+    let base64Image = null;
+
+    function loadFile(file) {
+      if (!file || !file.type.match(/image\/(jpeg|png)/)) {
+        alert('Please upload a JPEG or PNG image.'); return;
+      }
+      if (file.size > 10 * 1024 * 1024) {
+        alert('File too large. Max 10 MB.'); return;
+      }
+      const reader = new FileReader();
+      reader.onload = e => {
+        base64Image = e.target.result.split(',')[1];
+        previewImg.src  = e.target.result;
+        preview.style.display = 'block';
+        dropZone.style.display = 'none';
+        predictBtn.disabled = false;
+        $('result').style.display = 'none';
+      };
+      reader.readAsDataURL(file);
+    }
+
+    fileInput.addEventListener('change', e => loadFile(e.target.files[0]));
+
+    dropZone.addEventListener('dragover',  e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+    dropZone.addEventListener('drop', e => {
+      e.preventDefault();
+      dropZone.classList.remove('drag-over');
+      loadFile(e.dataTransfer.files[0]);
+    });
+
+    removeBtn.addEventListener('click', () => {
+      base64Image = null;
+      previewImg.src = '';
+      preview.style.display = 'none';
+      dropZone.style.display = 'block';
+      predictBtn.disabled = true;
+      fileInput.value = '';
+      $('result').style.display = 'none';
+    });
+
+    /* ── Predict ──────────────────────────────────────────────────────── */
+    predictBtn.addEventListener('click', async () => {
+      if (!base64Image) return;
+
+      setLoading('predictSpinner', 'predictIcon', 'predictText', 'Analyse Image', true);
+      predictBtn.disabled = true;
+      $('result').style.display = 'none';
+      $('modelStatus').textContent = '● Running…';
+
+      try {
+        const res  = await fetch('/predict', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ image: base64Image })
+        });
+
+
+
+        const data = await res.json();
+        console.log("Data",data)
+
+        const inner = $('resultInner');
+        const val   = $('resultValue');
+        $('result').style.display = 'block';
+
+        if (data.success) {
+          inner.classList.remove('error');
+          val.textContent = Array.isArray(data.result)
+            ? data.result.map(r => `Prediction: ${r.image}`).join(' · ')
+            : JSON.stringify(data.result);
+          $('modelStatus').textContent = '● Ready';
+        } else {
+          inner.classList.add('error');
+          val.textContent = data.error || 'Unknown error';
+          $('modelStatus').textContent = '● Error';
+        }
+      } catch (err) {
+        $('result').style.display = 'block';
+        $('resultInner').classList.add('error');
+        $('resultValue').textContent = 'Network error: ' + err.message;
+        $('modelStatus').textContent = '● Offline';
+      } finally {
+        setLoading('predictSpinner', 'predictIcon', 'predictText', 'Analyse Image', false);
+        predictBtn.disabled = false;
+      }
+    });
+
+    /* ── Train ────────────────────────────────────────────────────────── */
+    $('trainBtn').addEventListener('click', async () => {
+      const btn = $('trainBtn');
+      btn.disabled = true;
+      setLoading('trainSpinner', 'trainIcon', 'trainText', 'Start Training', true);
+
+      const status = $('trainStatus');
+      status.className  = 'train-status';
+      status.style.display = 'block';
+      status.textContent = '⟳ Pipeline running via DVC…';
+
+      try {
+        const res  = await fetch('/train', { method: 'POST' });
+        const data = await res.json();
+
+        if (data.success) {
+          status.className  = 'train-status success';
+          status.textContent = '✓ ' + data.message;
+        } else {
+          status.className  = 'train-status error';
+          status.textContent = '✕ ' + (data.error || 'Training failed.');
+        }
+      } catch (err) {
+        status.className  = 'train-status error';
+        status.textContent = '✕ Network error: ' + err.message;
+      } finally {
+        setLoading('trainSpinner', 'trainIcon', 'trainText', 'Start Training', false);
+        btn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

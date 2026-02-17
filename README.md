@@ -65,3 +65,15 @@ Run this to connect with dagshub's client
     import dagshub
 dagshub.init(repo_owner='Rustyfull', repo_name='kidney-disease-classification', mlflow=True)
 ```
+
+### dvc
+```bash
+    dvc init
+```
+```bash
+    dvc repro
+```
+```bash
+    dvc dag
+```
+
