@@ -1,33 +1,19 @@
-# --- Deep Learning & Numerische Berechnungen ---
-tensorflow==2.18.1      # Haupt-Framework für das Training und Deployment von Deep-Learning-Modellen
-numpy                   # Grundlegende Bibliothek für Berechnungen mit multidimensionalen Arrays
-scipy                   # Ergänzende Funktionen für wissenschaftliche Berechnungen (z.B. Optimierung)
-
-# --- Datenmanipulation & Analyse ---
-pandas                  # Manipulation und Analyse von Daten in Tabellenform (DataFrames)
-
-# --- MLOps & Projektmanagement ---
-dvc                     # Data Version Control: Versionierung von Datensätzen und Modellen (wie Git für Daten)
-mlflow==3.5.0           # Tracking von Experimenten (Metriken, Parameter) und Modell-Lebenszyklus
-joblib                  # Effizientes Speichern und Laden von Python-Objekten (z.B. Scikit-learn Modelle)
-
-# --- Visualisierung ---
-matplotlib              # Basis-Bibliothek zur Erstellung von statischen Grafiken und Diagrammen
-seaborn                 # Statistische Datenvisualisierung (basiert auf Matplotlib, sieht moderner aus)
-
-# --- Hilfswerkzeuge & Code-Qualität ---
-python-box==6.0.2       # Ermöglicht den Zugriff auf Dictionary-Keys mittels Punktnotation (dict.key)
-pyYAML                  # Zum Lesen und Schreiben von Konfigurationsdateien im YAML-Format
-types-PyYAML            # Typdefinitionen für PyYAML (hilft bei der Autovervollständigung in der IDE)
-tqdm                    # Erzeugt Fortschrittsbalken für Schleifen und langwierige Prozesse
-ensure==1.0.2           # Hilfsprogramm zur Validierung von Datentypen und Bedingungen
-notebook                # Installiert die Jupyter Notebook Umgebung für interaktive Entwicklung
-
-# --- Deployment & API ---
-Flask                   # Micro-Web-Framework, um dein Modell als Web-API bereitzustellen
-Flask-Cors              # Ermöglicht Cross-Origin Resource Sharing (CORS) für den Zugriff auf die API
-gdown                   # Tool zum einfachen Herunterladen von großen Dateien aus Google Drive
-
-numpy==1.26.4
-# --- Lokale Installation ---
--e .                    # Installiert dein eigenes Projekt im "Editable Mode" (basiert auf setup.py)
+tensorflow==2.12.0
+pandas
+gdown
+dvc
+mlflow==2.12.2
+notebook
+numpy
+matplotlib
+seaborn
+python-box==6.0.2
+pyyaml
+tqdm
+ensure==1.0.2
+joblib
+types-pyyaml
+scipy
+Flask
+Flask-Cors
+-e .
