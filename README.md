@@ -53,3 +53,12 @@ Führen Sie die Flask-Applikation aus:
 ```
 Öffnen Sie nun ihren Browser unter [localhost:5000](http://localhost:5000)
 
+
+### dagshub
+[dagshub](https://dagshub.com/)
+
+Run this to connect with dagshub's client
+```bash
+    import dagshub
+dagshub.init(repo_owner='Rustyfull', repo_name='kidney-disease-classification', mlflow=True)
+```

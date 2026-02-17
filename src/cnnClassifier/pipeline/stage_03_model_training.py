@@ -3,14 +3,14 @@ from cnnClassifier.components.model_training import Training
 from cnnClassifier import  logger
 
 
-STAGE_NAME = "Training"
+STAGE_NAME = "Training "
 
 class ModelTrainingPipeline:
     def __init__(self):
         pass
 
     def main(self):
-        config = ConfigManager()
+        config = ConfigurationManager()
         training_config = config.get_training_config()
         training = Training(config=training_config)
         training.get_base_model()

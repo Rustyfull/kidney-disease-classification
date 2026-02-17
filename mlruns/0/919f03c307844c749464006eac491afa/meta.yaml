@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/peguy/PycharmProjects/kidneydiseaseklassification/mlruns/0/919f03c307844c749464006eac491afa/artifacts
+end_time: 1771326829281
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: 919f03c307844c749464006eac491afa
+run_name: skillful-cat-90
+run_uuid: 919f03c307844c749464006eac491afa
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1771326816783
+status: 3
+tags: []
+user_id: peguy
