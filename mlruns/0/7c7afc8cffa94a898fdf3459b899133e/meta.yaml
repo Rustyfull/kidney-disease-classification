@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/peguy/PycharmProjects/kidneydiseaseklassification/mlruns/0/7c7afc8cffa94a898fdf3459b899133e/artifacts
+end_time: 1771328494083
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: 7c7afc8cffa94a898fdf3459b899133e
+run_name: rogue-cub-104
+run_uuid: 7c7afc8cffa94a898fdf3459b899133e
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1771328478668
+status: 3
+tags: []
+user_id: peguy

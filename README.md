@@ -54,6 +54,9 @@ Führen Sie die Flask-Applikation aus:
 Öffnen Sie nun ihren Browser unter [localhost:5000](http://localhost:5000)
 
 
+##### cmd
+- mlflow ui
+
 ### dagshub
 [dagshub](https://dagshub.com/)
 
